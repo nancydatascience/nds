@@ -1,0 +1,55 @@
+---
+title: "Temperature data"
+author: "Paul Rougieux"
+date: "21 August 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Sources of historical temperature data for Nancy
+
+Historical temperature data is available :
+
+* on Meteo France's [open data website](https://donneespubliques.meteofrance.fr), in a file called [données SYNOP essentielles OMM](https://donneespubliques.meteofrance.fr/?fond=produit&id_produit=90&id_rubrique=32)
+* on [ncdc.noaa.gov](https://www.ncdc.noaa.gov), under the [Essey, FR weather station](https://www.ncdc.noaa.gov/cdo-web/datasets/GHCND/stations/GHCND:FRM00007180/detail)
+    * data can be ordered per email, with a maximum of 500 pages per PDF document. 
+    * data can be accessed through an API, [with an authentication key/web services token](https://www.ncdc.noaa.gov/cdo-web/token)
+
+Reading temperature data into R:
+
+ * [RNOAA](https://github.com/ropensci/rnoaa) interface to NOAA APIs
+
+# Reading temperature data with the RNOAA package
+The package requires a NOAA API key for authentication 
+[explanations on how to get and use an API key](https://ropensci.org/blog/2014/03/13/rnoaa/#api-keys---authentication).
+
+Once a NOAA token has been obtained, information can be loaded from the API with curl
+([as explained on gis.stackexchange](https://gis.stackexchange.com/a/156657/67897))
+for example all datasets available from the Essey station :
+
+    curl -H "token:<enter token here>" https://www.ncdc.noaa.gov/cdo-web/api/v2/datasets?stationid=GHCND:FRM00007180
+
+
+
+```{r}
+library(rnoaa)
+ncdc_stations(stationid='GHCND:FRM00007180')
+
+```
+
+In what unit are precipitation values, are they in Fahrenheit?
+I could load historical data from the French website and compare temperatures to find out. 
+
+```{r}
+out <- ncdc(datasetid='GHCND', stationid = 'GHCND:FRM00007180', startdate = '2017-05-01', enddate = '2017-05-10')
+dtf <- out$data
+ncdc_plot(out)
+library(ggplot2)
+ggplot(dtf , aes(x = date, y = value)) + geom_point() +
+    facet_wrap(~datatype)
+```
+
