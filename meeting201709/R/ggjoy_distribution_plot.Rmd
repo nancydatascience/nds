@@ -1,0 +1,64 @@
+---
+title: "Plotting distrubutions with ggjoy"
+author: "Paul Rougieux"
+date: "15 September 2017"
+output: 
+  html_document: 
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Question: How to make a moving distribution plot?
+[Stackoverflow question](https://stackoverflow.com/questions/45299043/how-to-reproduce-this-moving-distribution-plot-with-r?noredirect=1#comment77562559_45299043)
+
+G Elliot Moris showed [political polarization through time using a moving distribution plot](https://twitter.com/gelliottmorris/status/888904322326638592). 
+[![Plot of polarization in US politics 1963-2013][1]][1]
+
+ [1]: Plot_political_polarization_US.jpg
+
+From this question: [How to use 'facet' to create multiple density plot in GGPLOT](https://stackoverflow.com/questions/14623348/how-to-use-facet-to-create-multiple-density-plot-in-ggplot) I managed to use facets to reproduce a similar plot using dummy data:
+```{r}
+    library(ggplot2)
+    set.seed(101)
+    dtf <- data.frame(variable = c(rnorm(1000),
+                                   rnorm(1000) + rep(1:10/2,each =100)),
+                      group = rep(c("a","b"), each = 1000),
+                      year = rep(2001:2010, each=100))
+    ggplot(dtf) +
+        geom_density(aes(x = variable, fill = group)) +
+        facet_grid(year ~.)
+```
+
+
+But I would like the distributions to overlap as in the original plot. Is there a specific name for such plots and is it possible to reproduce them with R?
+
+
+[EDIT] A dynamic version of a similar plot is available in [this global temperature distribution plot](https://twitter.com/ClimateOfGavin/status/887522165196820480). 
+
+
+
+# Ian's answer using the ggplot2 and ggjoy packages  
+[Ian answered on StackOverflow](https://stackoverflow.com/a/45300554/2641825)
+```{r warning=FALSE, message=FALSE}
+# install.packages("ggjoy")
+library(ggjoy)
+ggplot(dtf,aes(x = variable, y = as.factor(year), fill = group, alpha = .5)) +
+        geom_joy(scale = 2) + theme_joy() + theme_minimal()
+```
+
+
+# Modifications based on Ian's answer
+```{r}
+# Transform year to a factor
+dtf$year <- factor(dtf$year, levels = rev(unique(dtf$year)))
+ggplot(dtf,aes(x = variable, y = year, fill = group)) +
+        geom_joy(scale = 2, alpha = .5, rel_min_height = 0.01) + 
+    theme_joy() + 
+    scale_y_discrete(breaks=c(2001,2005,2010))
+    # Originaly removed the horizontal lines completely
+    # theme(panel.grid.major.y = element_blank())
+```
