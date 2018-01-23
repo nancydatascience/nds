@@ -1,5 +1,5 @@
 ---
-title: "Plotting distrubutions with ggjoy"
+title: "Plotting distributions with ggjoy"
 author: "Paul Rougieux"
 date: "15 September 2017"
 output: 
@@ -28,7 +28,10 @@ From this question: [How to use 'facet' to create multiple density plot in GGPLO
                                    rnorm(1000) + rep(1:10/2,each =100)),
                       group = rep(c("a","b"), each = 1000),
                       year = rep(2001:2010, each=100))
-    ggplot(dtf) +
+write.csv(dtf, file = "ridgedata.csv", row.names = FALSE)
+data2 <- read.csv("ridgedata.csv")
+       
+     ggplot(dtf) +
         geom_density(aes(x = variable, fill = group)) +
         facet_grid(year ~.)
 ```
@@ -45,9 +48,9 @@ But I would like the distributions to overlap as in the original plot. Is there 
 [Ian answered on StackOverflow](https://stackoverflow.com/a/45300554/2641825)
 ```{r warning=FALSE, message=FALSE}
 # install.packages("ggjoy")
-library(ggjoy)
+library(ggridges)
 ggplot(dtf,aes(x = variable, y = as.factor(year), fill = group, alpha = .5)) +
-        geom_joy(scale = 2) + theme_joy() + theme_minimal()
+    geom_density_ridges(scale = 2) + theme_ridges() + theme_minimal()
 ```
 
 
@@ -56,8 +59,8 @@ ggplot(dtf,aes(x = variable, y = as.factor(year), fill = group, alpha = .5)) +
 # Transform year to a factor
 dtf$year <- factor(dtf$year, levels = rev(unique(dtf$year)))
 ggplot(dtf,aes(x = variable, y = year, fill = group)) +
-        geom_joy(scale = 2, alpha = .5, rel_min_height = 0.01) + 
-    theme_joy() + 
+        geom_density_ridges(scale = 2, alpha = .5, rel_min_height = 0.01) + 
+    theme_ridges() + 
     scale_y_discrete(breaks=c(2001,2005,2010))
     # Originaly removed the horizontal lines completely
     # theme(panel.grid.major.y = element_blank())
