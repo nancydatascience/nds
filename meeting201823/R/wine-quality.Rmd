@@ -1,0 +1,87 @@
+---
+title: "Wine"
+author: "Paul Rougieux"
+date: "23 January 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(FactoMineR)
+library(dplyr)
+```
+
+# Load data
+```{r}
+red <- read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv", sep=";")
+white <- read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv", sep=";")
+```
+
+# Explore
+## Acidity in red and white
+White wines have a lower pH than red wines.
+```{r}
+summary(red$pH)
+ggplot(red, aes(x = pH)) +
+    geom_histogram() +
+    ggtitle("Red wine")
+
+summary(white$pH)
+ggplot(white, aes(x = pH)) +
+    geom_histogram() +
+    ggtitle("White wine")
+```
+
+
+## Alcohol and quality
+It seems that alcohol is positively correlated with quality.
+```{r}
+# plot structure with NULL data, data will be specified later in the geom_point call.
+p <- ggplot(NULL, aes(x = as.factor(quality), y = alcohol))
+    
+p + geom_boxplot(data = red) + ggtitle("Red wine")
+p + geom_boxplot(data = white) + ggtitle("White wine")
+```
+
+
+## Sulphates, sulfur.dioxide and quality
+Total.sulfur.dioxide is negatively correlated with quality.
+```{r}
+# plot structure with NULL data, data will be specified later in the geom_point call.
+p <- ggplot(NULL, aes(x = sulphates, y = total.sulfur.dioxide, color = as.factor(quality))) +
+    facet_grid(quality ~ .)
+    
+p + geom_point(data = red) + ggtitle("Red wine")
+p + geom_point(data = white) + ggtitle("White wine")
+```
+
+
+
+
+# ACP
+sthda.com: [Méthodes des Composantes Principales dans R: Guide Pratique](http://www.sthda.com/french/articles/38-methodes-des-composantes-principales-dans-r-guide-pratique/73-acp-analyse-en-composantes-principales-avec-r-l-essentiel/)
+
+## Red wine
+```{r}
+library(FactoMineR)
+res.pca <- PCA(select(red, -quality))
+res.pca <- PCA(red)
+summary(res.pca)
+```
+
+## White wine
+```{r}
+library(FactoMineR)
+res.pca <- PCA(white)
+summary(res.pca)
+```
+
+
+
+# Correlation
+```{r}
+cor(red)
+cor(white)
+```
+
